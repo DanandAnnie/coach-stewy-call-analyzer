@@ -19,8 +19,16 @@ export default async (req) => {
     body,
   });
 
-  const data = await res.json();
-  return new Response(JSON.stringify(data), {
+  const text = await res.text();
+  try {
+    JSON.parse(text);
+  } catch {
+    return new Response(JSON.stringify({ error: text }), {
+      status: res.status,
+      headers: { "content-type": "application/json" },
+    });
+  }
+  return new Response(text, {
     status: res.status,
     headers: { "content-type": "application/json" },
   });
