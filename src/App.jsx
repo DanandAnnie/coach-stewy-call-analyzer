@@ -51,8 +51,8 @@ const SCORE_META = {
   overall: { label: "Overall", icon: "★" },
 };
 
-const scoreColor = (s) => s >= 80 ? "#4ade80" : s >= 60 ? "#fbbf24" : "#f87171";
-const tempMeta = { hot: { color: "#f87171", label: "HOT" }, warm: { color: "#fbbf24", label: "WARM" }, cold: { color: "#60a5fa", label: "COLD" }, dead: { color: "#6b7280", label: "DEAD" } };
+const scoreColor = (s) => s >= 80 ? "#16a34a" : s >= 60 ? "#ca8a04" : "#dc2626";
+const tempMeta = { hot: { color: "#dc2626", label: "HOT" }, warm: { color: "#ca8a04", label: "WARM" }, cold: { color: "#2563eb", label: "COLD" }, dead: { color: "#6b7280", label: "DEAD" } };
 
 const STEPS = [
   { id: "upload", label: "Upload MP3" },
@@ -181,54 +181,54 @@ export default function CallAnalyzerFull() {
   const isRunning = ["upload", "transcribe", "analyze"].includes(step);
 
   return (
-    <div style={{ minHeight: "100vh", background: "#08090b", color: "#e2e8f0", fontFamily: "'DM Mono', 'Fira Code', 'Courier New', monospace" }}>
+    <div style={{ minHeight: "100vh", background: "#f8f9fb", color: "#1e293b", fontFamily: "'DM Mono', 'Fira Code', 'Courier New', monospace" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@400;600;700;800&display=swap');
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-track { background: #08090b; } ::-webkit-scrollbar-thumb { background: #1e2330; }
-        .pipeline-step { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
-        .step-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-        .step-line { width: 1px; height: 20px; background: #1e2330; margin-left: 3.5px; }
-        .tab { background: none; border: none; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 10px; letter-spacing: .12em; text-transform: uppercase; padding: 8px 14px; transition: all .2s; border-bottom: 1px solid transparent; }
-        .tab.on { color: #fbbf24; border-bottom-color: #fbbf24; }
-        .tab.off { color: #374151; } .tab.off:hover { color: #6b7280; }
-        .run-btn { background: #fbbf24; color: #08090b; border: none; cursor: pointer; font-family: 'DM Mono', monospace; font-weight: 500; font-size: 11px; letter-spacing: .14em; text-transform: uppercase; padding: 13px 28px; transition: all .15s; }
-        .run-btn:hover:not(:disabled) { background: #f59e0b; }
+        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: #f0f1f3; } ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 2px; }
+        .pipeline-step { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
+        .step-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .step-line { width: 1px; height: 20px; background: #e2e8f0; margin-left: 4.5px; }
+        .tab { background: none; border: none; cursor: pointer; font-family: 'DM Mono', monospace; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; padding: 10px 18px; transition: all .2s; border-bottom: 2px solid transparent; }
+        .tab.on { color: #b45309; border-bottom-color: #b45309; font-weight: 500; }
+        .tab.off { color: #94a3b8; } .tab.off:hover { color: #475569; }
+        .run-btn { background: #b45309; color: #fff; border: none; cursor: pointer; font-family: 'DM Mono', monospace; font-weight: 600; font-size: 15px; letter-spacing: .1em; text-transform: uppercase; padding: 16px 32px; border-radius: 6px; transition: all .15s; }
+        .run-btn:hover:not(:disabled) { background: #92400e; }
         .run-btn:disabled { opacity: .35; cursor: not-allowed; }
-        .drop-zone { border: 1px dashed #1e2330; padding: 28px 20px; text-align: center; cursor: pointer; transition: all .2s; position: relative; }
-        .drop-zone.over { border-color: #fbbf24; background: rgba(251,191,36,.04); }
-        .drop-zone:hover { border-color: #374151; }
-        .field-label { font-size: 9px; letter-spacing: .16em; text-transform: uppercase; color: #374151; margin-bottom: 6px; display: block; }
-        .text-input { background: #0d0f14; border: 1px solid #1e2330; color: #e2e8f0; font-family: 'DM Mono', monospace; font-size: 12px; padding: 10px 12px; width: 100%; outline: none; transition: border-color .2s; }
-        .text-input:focus { border-color: #374151; }
-        select.text-input option { background: #0d0f14; }
-        .score-row { margin-bottom: 12px; }
-        .coaching-card { background: #0d0f14; border: 1px solid #1e2330; border-left: 2px solid #fbbf24; padding: 12px 14px; margin-bottom: 8px; }
-        .win-pill { background: rgba(74,222,128,.07); border: 1px solid rgba(74,222,128,.2); color: #4ade80; font-size: 11px; padding: 5px 10px; margin-bottom: 6px; display: block; line-height: 1.4; }
+        .drop-zone { border: 2px dashed #cbd5e1; padding: 32px 24px; text-align: center; cursor: pointer; transition: all .2s; position: relative; border-radius: 8px; background: #fff; }
+        .drop-zone.over { border-color: #b45309; background: rgba(180,83,9,.04); }
+        .drop-zone:hover { border-color: #94a3b8; }
+        .field-label { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: #64748b; margin-bottom: 8px; display: block; font-weight: 500; }
+        .text-input { background: #fff; border: 1px solid #e2e8f0; color: #1e293b; font-family: 'DM Mono', monospace; font-size: 15px; padding: 12px 14px; width: 100%; outline: none; transition: border-color .2s; border-radius: 6px; }
+        .text-input:focus { border-color: #94a3b8; box-shadow: 0 0 0 3px rgba(148,163,184,.15); }
+        select.text-input option { background: #fff; }
+        .score-row { margin-bottom: 14px; }
+        .coaching-card { background: #fff; border: 1px solid #e2e8f0; border-left: 3px solid #b45309; padding: 16px 18px; margin-bottom: 10px; border-radius: 6px; }
+        .win-pill { background: rgba(22,163,74,.06); border: 1px solid rgba(22,163,74,.25); color: #16a34a; font-size: 14px; padding: 8px 14px; margin-bottom: 8px; display: block; line-height: 1.5; border-radius: 6px; }
         @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:.3; } }
         .pulse { animation: pulse-dot 1.2s infinite; }
         @keyframes fadein { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
         .fadein { animation: fadein .4s ease forwards; }
-        .progress-bar { height: 2px; background: #fbbf24; transition: width 1s ease; }
+        .progress-bar { height: 3px; background: #b45309; transition: width 1s ease; border-radius: 2px; }
         .key-input-wrap { position: relative; }
         .key-input-wrap input { padding-right: 60px !important; }
-        .show-toggle { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 9px; letter-spacing: .1em; color: #374151; font-family: 'DM Mono', monospace; }
-        .show-toggle:hover { color: #6b7280; }
+        .show-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 11px; letter-spacing: .1em; color: #94a3b8; font-family: 'DM Mono', monospace; }
+        .show-toggle:hover { color: #475569; }
       `}</style>
 
       {/* Header */}
-      <div style={{ background: "#0a0c10", borderBottom: "1px solid #111318", padding: "14px 28px", display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ width: 6, height: 6, background: "#fbbf24", borderRadius: "50%" }} />
-        <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 13, fontWeight: 700, letterSpacing: ".06em", color: "#fbbf24" }}>CALL INTEL</span>
-        <span style={{ fontSize: 9, color: "#1e2330", letterSpacing: ".1em", marginLeft: 4 }}>THE FINEST HOMES · ST. GEORGE UT</span>
+      <div style={{ background: "#fff", borderBottom: "1px solid #e2e8f0", padding: "16px 28px", display: "flex", alignItems: "center", gap: 14 }}>
+        <div style={{ width: 8, height: 8, background: "#b45309", borderRadius: "50%" }} />
+        <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: ".04em", color: "#b45309" }}>CALL INTEL</span>
+        <span style={{ fontSize: 12, color: "#94a3b8", letterSpacing: ".08em", marginLeft: 4 }}>THE FINEST HOMES · ST. GEORGE UT</span>
         {step === "done" && (
-          <button onClick={reset} style={{ marginLeft: "auto", background: "none", border: "1px solid #1e2330", cursor: "pointer", color: "#374151", fontSize: 9, letterSpacing: ".1em", fontFamily: "'DM Mono', monospace", padding: "4px 12px" }}>
+          <button onClick={reset} style={{ marginLeft: "auto", background: "none", border: "1px solid #e2e8f0", cursor: "pointer", color: "#64748b", fontSize: 12, letterSpacing: ".08em", fontFamily: "'DM Mono', monospace", padding: "6px 14px", borderRadius: 4 }}>
             NEW CALL
           </button>
         )}
       </div>
 
-      <div style={{ maxWidth: 1060, margin: "0 auto", padding: "28px 20px", display: "grid", gridTemplateColumns: step === "done" ? "340px 1fr" : "1fr", gap: 24 }}>
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", display: "grid", gridTemplateColumns: step === "done" ? "380px 1fr" : "1fr", gap: 28 }}>
 
         {/* LEFT / INPUT PANEL */}
         {step !== "done" && (
@@ -249,7 +249,7 @@ export default function CallAnalyzerFull() {
                   {showKey ? "HIDE" : "SHOW"}
                 </button>
               </div>
-              <div style={{ fontSize: 9, color: "#1e2330", marginTop: 4 }}>
+              <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
                 assemblyai.com → Account → API Keys · Free tier: 100 hrs/mo
               </div>
             </div>
@@ -281,25 +281,25 @@ export default function CallAnalyzerFull() {
                 <input ref={fileRef} type="file" accept="audio/*,.mp3" style={{ display: "none" }} onChange={e => setFile(e.target.files[0])} />
                 {file ? (
                   <div>
-                    <div style={{ fontSize: 12, color: "#fbbf24", marginBottom: 4 }}>{file.name}</div>
-                    <div style={{ fontSize: 10, color: "#374151" }}>{(file.size / 1024 / 1024).toFixed(1)} MB · click to replace</div>
+                    <div style={{ fontSize: 15, color: "#b45309", marginBottom: 4, fontWeight: 500 }}>{file.name}</div>
+                    <div style={{ fontSize: 13, color: "#64748b" }}>{(file.size / 1024 / 1024).toFixed(1)} MB · click to replace</div>
                   </div>
                 ) : (
                   <div>
-                    <div style={{ fontSize: 11, color: "#374151", marginBottom: 4 }}>Drop MP3 here or <span style={{ color: "#fbbf24" }}>browse</span></div>
-                    <div style={{ fontSize: 9, color: "#1e2330" }}>Works with any Mojo Dialer recording download</div>
+                    <div style={{ fontSize: 14, color: "#64748b", marginBottom: 4 }}>Drop MP3 here or <span style={{ color: "#b45309", fontWeight: 500 }}>browse</span></div>
+                    <div style={{ fontSize: 12, color: "#94a3b8" }}>Works with any Mojo Dialer recording download</div>
                   </div>
                 )}
               </div>
             </div>
 
             {/* Pipeline preview */}
-            <div style={{ background: "#0a0c10", border: "1px solid #111318", padding: "14px 16px", marginBottom: 20 }}>
-              <div style={{ fontSize: 9, color: "#1e2330", letterSpacing: ".14em", marginBottom: 10 }}>PIPELINE</div>
+            <div style={{ background: "#fff", border: "1px solid #e2e8f0", padding: "16px 18px", marginBottom: 24, borderRadius: 6 }}>
+              <div style={{ fontSize: 11, color: "#94a3b8", letterSpacing: ".12em", marginBottom: 12, fontWeight: 500 }}>PIPELINE</div>
               {["Upload MP3 → AssemblyAI", "Speaker diarization (Agent / Prospect)", "Claude coaching analysis", "Scores + coaching notes + follow-up"].map((s, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: i < 3 ? 8 : 0 }}>
-                  <div style={{ width: 4, height: 4, background: "#1e2330", borderRadius: "50%", marginTop: 5, flexShrink: 0 }} />
-                  <span style={{ fontSize: 10, color: "#374151", lineHeight: 1.4 }}>{s}</span>
+                <div key={i} style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: i < 3 ? 10 : 0 }}>
+                  <div style={{ width: 5, height: 5, background: "#cbd5e1", borderRadius: "50%", marginTop: 6, flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, color: "#475569", lineHeight: 1.5 }}>{s}</span>
                 </div>
               ))}
             </div>
@@ -312,21 +312,21 @@ export default function CallAnalyzerFull() {
             {isRunning && (
               <div style={{ marginTop: 20 }} className="fadein">
                 {/* Step indicators */}
-                <div style={{ display: "flex", gap: 0, marginBottom: 16, borderBottom: "1px solid #111318" }}>
+                <div style={{ display: "flex", gap: 0, marginBottom: 16, borderBottom: "1px solid #e2e8f0" }}>
                   {STEPS.map((s, i) => {
                     const active = s.id === step;
                     const done = currentStepIndex > i;
                     return (
-                      <div key={s.id} style={{ flex: 1, padding: "8px 0", textAlign: "center", borderBottom: `1px solid ${active ? "#fbbf24" : "transparent"}` }}>
-                        <div style={{ fontSize: 9, letterSpacing: ".1em", color: active ? "#fbbf24" : done ? "#374151" : "#1e2330" }}>
+                      <div key={s.id} style={{ flex: 1, padding: "10px 0", textAlign: "center", borderBottom: `2px solid ${active ? "#b45309" : "transparent"}` }}>
+                        <div style={{ fontSize: 12, letterSpacing: ".08em", color: active ? "#b45309" : done ? "#64748b" : "#cbd5e1", fontWeight: active ? 500 : 400 }}>
                           {done ? "✓ " : active ? "· " : ""}{s.label.toUpperCase()}
                         </div>
                       </div>
                     );
                   })}
                 </div>
-                <div style={{ fontSize: 11, color: "#6b7280", display: "flex", alignItems: "center", gap: 8 }}>
-                  <div className="pulse" style={{ width: 5, height: 5, background: "#fbbf24", borderRadius: "50%", flexShrink: 0 }} />
+                <div style={{ fontSize: 14, color: "#475569", display: "flex", alignItems: "center", gap: 10 }}>
+                  <div className="pulse" style={{ width: 6, height: 6, background: "#b45309", borderRadius: "50%", flexShrink: 0 }} />
                   {progress}
                 </div>
               </div>
@@ -334,7 +334,7 @@ export default function CallAnalyzerFull() {
 
             {/* Error */}
             {step === "error" && error && (
-              <div style={{ marginTop: 14, padding: "10px 14px", background: "rgba(248,113,113,.06)", border: "1px solid rgba(248,113,113,.2)", fontSize: 11, color: "#f87171" }}>
+              <div style={{ marginTop: 14, padding: "12px 16px", background: "rgba(220,38,38,.06)", border: "1px solid rgba(220,38,38,.2)", fontSize: 14, color: "#dc2626", borderRadius: 6 }}>
                 {error}
               </div>
             )}
@@ -345,25 +345,25 @@ export default function CallAnalyzerFull() {
         {step === "done" && result && (
           <div className="fadein">
             {/* Overall score */}
-            <div style={{ background: "#0a0c10", border: `1px solid ${scoreColor(result.scores.overall)}30`, padding: "18px 16px", marginBottom: 16, textAlign: "center" }}>
-              <div style={{ fontSize: 9, letterSpacing: ".16em", color: "#374151", marginBottom: 8 }}>OVERALL SCORE</div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 52, fontWeight: 800, color: scoreColor(result.scores.overall), lineHeight: 1 }}>
+            <div style={{ background: "#fff", border: `1px solid ${scoreColor(result.scores.overall)}40`, padding: "24px 20px", marginBottom: 18, textAlign: "center", borderRadius: 8 }}>
+              <div style={{ fontSize: 12, letterSpacing: ".12em", color: "#64748b", marginBottom: 10, fontWeight: 500 }}>OVERALL SCORE</div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 64, fontWeight: 800, color: scoreColor(result.scores.overall), lineHeight: 1 }}>
                 {result.scores.overall}
               </div>
-              <div style={{ fontSize: 9, color: "#374151", marginTop: 4 }}>out of 100</div>
+              <div style={{ fontSize: 12, color: "#94a3b8", marginTop: 6 }}>out of 100</div>
             </div>
 
             {/* Lead temp */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", background: "#0a0c10", border: "1px solid #111318", marginBottom: 16 }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", background: "#fff", border: "1px solid #e2e8f0", marginBottom: 18, borderRadius: 6 }}>
               <div>
-                <div style={{ fontSize: 9, color: "#1e2330", letterSpacing: ".14em", marginBottom: 3 }}>LEAD TEMP</div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: tempMeta[result.lead_temperature]?.color || "#6b7280", fontFamily: "'Syne', sans-serif" }}>
+                <div style={{ fontSize: 11, color: "#94a3b8", letterSpacing: ".12em", marginBottom: 4, fontWeight: 500 }}>LEAD TEMP</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: tempMeta[result.lead_temperature]?.color || "#6b7280", fontFamily: "'Syne', sans-serif" }}>
                   {result.lead_temperature?.toUpperCase()}
                 </div>
               </div>
               <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 9, color: "#1e2330", letterSpacing: ".14em", marginBottom: 3 }}>APPT SET</div>
-                <div style={{ fontSize: 13, color: result.appointment_set ? "#4ade80" : "#f87171", fontFamily: "'Syne', sans-serif" }}>
+                <div style={{ fontSize: 11, color: "#94a3b8", letterSpacing: ".12em", marginBottom: 4, fontWeight: 500 }}>APPT SET</div>
+                <div style={{ fontSize: 18, fontWeight: 700, color: result.appointment_set ? "#16a34a" : "#dc2626", fontFamily: "'Syne', sans-serif" }}>
                   {result.appointment_set ? "YES" : "NO"}
                 </div>
               </div>
@@ -371,9 +371,9 @@ export default function CallAnalyzerFull() {
 
             {/* Talk ratio */}
             {result.talk_ratio_estimate && (
-              <div style={{ padding: "8px 14px", background: "#0a0c10", border: "1px solid #111318", marginBottom: 16 }}>
-                <div style={{ fontSize: 9, color: "#1e2330", letterSpacing: ".14em", marginBottom: 4 }}>TALK RATIO</div>
-                <div style={{ fontSize: 11, color: "#6b7280" }}>{result.talk_ratio_estimate}</div>
+              <div style={{ padding: "12px 18px", background: "#fff", border: "1px solid #e2e8f0", marginBottom: 18, borderRadius: 6 }}>
+                <div style={{ fontSize: 11, color: "#94a3b8", letterSpacing: ".12em", marginBottom: 6, fontWeight: 500 }}>TALK RATIO</div>
+                <div style={{ fontSize: 15, color: "#475569", fontWeight: 500 }}>{result.talk_ratio_estimate}</div>
               </div>
             )}
 
@@ -382,13 +382,13 @@ export default function CallAnalyzerFull() {
               {Object.entries(result.scores).filter(([k]) => k !== "overall").map(([key, val]) => {
                 const c = scoreColor(val);
                 return (
-                  <div key={key} style={{ marginBottom: 10 }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-                      <span style={{ fontSize: 10, color: "#4b5563" }}>{SCORE_META[key]?.label}</span>
-                      <span style={{ fontSize: 11, color: c, fontWeight: 500 }}>{val}</span>
+                  <div key={key} style={{ marginBottom: 12 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                      <span style={{ fontSize: 13, color: "#475569" }}>{SCORE_META[key]?.label}</span>
+                      <span style={{ fontSize: 14, color: c, fontWeight: 600 }}>{val}</span>
                     </div>
-                    <div style={{ height: 2, background: "#111318", borderRadius: 1 }}>
-                      <div style={{ height: "100%", width: `${val}%`, background: c, borderRadius: 1, transition: "width 1s ease" }} />
+                    <div style={{ height: 4, background: "#e2e8f0", borderRadius: 2 }}>
+                      <div style={{ height: "100%", width: `${val}%`, background: c, borderRadius: 2, transition: "width 1s ease" }} />
                     </div>
                   </div>
                 );
@@ -396,13 +396,13 @@ export default function CallAnalyzerFull() {
             </div>
 
             {/* File info */}
-            <div style={{ padding: "8px 14px", background: "#0a0c10", border: "1px solid #111318", fontSize: 10, color: "#1e2330" }}>
+            <div style={{ padding: "10px 18px", background: "#fff", border: "1px solid #e2e8f0", fontSize: 13, color: "#94a3b8", borderRadius: 6 }}>
               {contactName || "Unknown"} · {callType} · {file?.name}
             </div>
 
-            <button onClick={reset} style={{ marginTop: 12, width: "100%", background: "none", border: "1px solid #1e2330", color: "#374151", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: ".1em", padding: "10px", transition: "all .2s" }}
-              onMouseEnter={e => { e.target.style.borderColor = "#374151"; e.target.style.color = "#6b7280"; }}
-              onMouseLeave={e => { e.target.style.borderColor = "#1e2330"; e.target.style.color = "#374151"; }}>
+            <button onClick={reset} style={{ marginTop: 14, width: "100%", background: "none", border: "1px solid #e2e8f0", color: "#64748b", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 13, letterSpacing: ".08em", padding: "12px", transition: "all .2s", borderRadius: 6 }}
+              onMouseEnter={e => { e.target.style.borderColor = "#94a3b8"; e.target.style.color = "#475569"; }}
+              onMouseLeave={e => { e.target.style.borderColor = "#e2e8f0"; e.target.style.color = "#64748b"; }}>
               ANALYZE ANOTHER CALL
             </button>
           </div>
@@ -412,15 +412,15 @@ export default function CallAnalyzerFull() {
         {step === "done" && result && (
           <div className="fadein">
             {/* Summary */}
-            <div style={{ background: "#0a0c10", border: "1px solid #111318", padding: "14px 16px", marginBottom: 16 }}>
-              <div className="field-label" style={{ marginBottom: 6 }}>Call Summary</div>
-              <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, fontFamily: "'Syne', sans-serif", fontWeight: 400 }}>
+            <div style={{ background: "#fff", border: "1px solid #e2e8f0", padding: "18px 20px", marginBottom: 18, borderRadius: 8 }}>
+              <div className="field-label" style={{ marginBottom: 8 }}>Call Summary</div>
+              <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.7, fontFamily: "'Syne', sans-serif", fontWeight: 400 }}>
                 {result.call_summary}
               </p>
             </div>
 
             {/* Tabs */}
-            <div style={{ borderBottom: "1px solid #111318", marginBottom: 18, display: "flex" }}>
+            <div style={{ borderBottom: "1px solid #e2e8f0", marginBottom: 20, display: "flex" }}>
               {[["scores", "Coaching Notes"], ["wins", "Wins"], ["followup", "Follow-up"], ["transcript", "Transcript"]].map(([id, label]) => (
                 <button key={id} className={`tab ${activeTab === id ? "on" : "off"}`} onClick={() => setActiveTab(id)}>
                   {label}
@@ -433,11 +433,11 @@ export default function CallAnalyzerFull() {
               <div className="fadein">
                 {result.coaching_notes?.map((note, i) => (
                   <div key={i} className="coaching-card">
-                    <div style={{ fontSize: 10, color: "#fbbf24", marginBottom: 6, letterSpacing: ".04em" }}>
+                    <div style={{ fontSize: 14, color: "#b45309", marginBottom: 8, letterSpacing: ".02em", fontWeight: 500 }}>
                       ⚑ {note.issue}
                     </div>
-                    <div style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6, fontFamily: "'Syne', sans-serif" }}>
-                      <span style={{ color: "#374151", fontSize: 9, letterSpacing: ".1em" }}>TRY INSTEAD: </span>
+                    <div style={{ fontSize: 14, color: "#475569", lineHeight: 1.7, fontFamily: "'Syne', sans-serif" }}>
+                      <span style={{ color: "#94a3b8", fontSize: 11, letterSpacing: ".08em", fontWeight: 500 }}>TRY INSTEAD: </span>
                       {note.fix}
                     </div>
                   </div>
@@ -445,15 +445,15 @@ export default function CallAnalyzerFull() {
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 16 }}>
                   {result.best_moment && (
-                    <div style={{ background: "#0a0c10", border: "1px solid #111318", borderLeft: "2px solid #4ade80", padding: "12px 14px" }}>
-                      <div style={{ fontSize: 9, color: "#4ade80", letterSpacing: ".14em", marginBottom: 6 }}>BEST MOMENT</div>
-                      <p style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.5, fontFamily: "'Syne', sans-serif" }}>{result.best_moment}</p>
+                    <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderLeft: "3px solid #16a34a", padding: "14px 16px", borderRadius: 6 }}>
+                      <div style={{ fontSize: 11, color: "#16a34a", letterSpacing: ".1em", marginBottom: 8, fontWeight: 500 }}>BEST MOMENT</div>
+                      <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6, fontFamily: "'Syne', sans-serif" }}>{result.best_moment}</p>
                     </div>
                   )}
                   {result.missed_opportunity && (
-                    <div style={{ background: "#0a0c10", border: "1px solid #111318", borderLeft: "2px solid #f87171", padding: "12px 14px" }}>
-                      <div style={{ fontSize: 9, color: "#f87171", letterSpacing: ".14em", marginBottom: 6 }}>MISSED OPPORTUNITY</div>
-                      <p style={{ fontSize: 11, color: "#6b7280", lineHeight: 1.5, fontFamily: "'Syne', sans-serif" }}>{result.missed_opportunity}</p>
+                    <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderLeft: "3px solid #dc2626", padding: "14px 16px", borderRadius: 6 }}>
+                      <div style={{ fontSize: 11, color: "#dc2626", letterSpacing: ".1em", marginBottom: 8, fontWeight: 500 }}>MISSED OPPORTUNITY</div>
+                      <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6, fontFamily: "'Syne', sans-serif" }}>{result.missed_opportunity}</p>
                     </div>
                   )}
                 </div>
@@ -463,7 +463,7 @@ export default function CallAnalyzerFull() {
                     <div className="field-label">Objections Detected</div>
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
                       {result.objections_detected.map((o, i) => (
-                        <span key={i} style={{ fontSize: 10, color: "#f87171", background: "rgba(248,113,113,.07)", border: "1px solid rgba(248,113,113,.2)", padding: "4px 10px" }}>{o}</span>
+                        <span key={i} style={{ fontSize: 13, color: "#dc2626", background: "rgba(220,38,38,.06)", border: "1px solid rgba(220,38,38,.2)", padding: "6px 12px", borderRadius: 4 }}>{o}</span>
                       ))}
                     </div>
                   </div>
@@ -481,7 +481,7 @@ export default function CallAnalyzerFull() {
                   <div style={{ marginTop: 20 }}>
                     <div className="field-label">Key Motivations Detected</div>
                     {result.key_motivations.map((m, i) => (
-                      <div key={i} style={{ padding: "8px 12px", background: "#0a0c10", border: "1px solid #111318", marginBottom: 6, fontSize: 11, color: "#6b7280", fontFamily: "'Syne', sans-serif" }}>
+                      <div key={i} style={{ padding: "10px 14px", background: "#fff", border: "1px solid #e2e8f0", marginBottom: 8, fontSize: 14, color: "#475569", fontFamily: "'Syne', sans-serif", borderRadius: 6 }}>
                         {m}
                       </div>
                     ))}
@@ -494,22 +494,22 @@ export default function CallAnalyzerFull() {
             {activeTab === "followup" && (
               <div className="fadein">
                 <div className="field-label">Recommended Next Action</div>
-                <div style={{ background: "#0a0c10", border: "1px solid #fbbf2420", borderLeft: "2px solid #fbbf24", padding: "14px 16px", marginBottom: 20 }}>
-                  <p style={{ fontSize: 13, color: "#d1d5db", lineHeight: 1.7, fontFamily: "'Syne', sans-serif" }}>
+                <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderLeft: "3px solid #b45309", padding: "18px 20px", marginBottom: 22, borderRadius: 6 }}>
+                  <p style={{ fontSize: 16, color: "#334155", lineHeight: 1.7, fontFamily: "'Syne', sans-serif" }}>
                     {result.recommended_followup}
                   </p>
                 </div>
 
                 {result.next_step_detail && result.appointment_set && (
-                  <div style={{ background: "#0a0c10", border: "1px solid #4ade8020", padding: "10px 14px", marginBottom: 16 }}>
-                    <div style={{ fontSize: 9, color: "#4ade80", letterSpacing: ".14em", marginBottom: 4 }}>APPOINTMENT DETAIL</div>
-                    <p style={{ fontSize: 11, color: "#6b7280", fontFamily: "'Syne', sans-serif" }}>{result.next_step_detail}</p>
+                  <div style={{ background: "#fff", border: "1px solid rgba(22,163,74,.2)", padding: "14px 18px", marginBottom: 18, borderRadius: 6 }}>
+                    <div style={{ fontSize: 11, color: "#16a34a", letterSpacing: ".1em", marginBottom: 6, fontWeight: 500 }}>APPOINTMENT DETAIL</div>
+                    <p style={{ fontSize: 14, color: "#475569", fontFamily: "'Syne', sans-serif" }}>{result.next_step_detail}</p>
                   </div>
                 )}
 
-                <div style={{ padding: "12px 14px", background: "#0a0c10", border: "1px solid #111318" }}>
+                <div style={{ padding: "14px 18px", background: "#fff", border: "1px solid #e2e8f0", borderRadius: 6 }}>
                   <div className="field-label">GHL Integration</div>
-                  <div style={{ fontSize: 10, color: "#1e2330", lineHeight: 1.7, fontFamily: "'Syne', sans-serif" }}>
+                  <div style={{ fontSize: 13, color: "#94a3b8", lineHeight: 1.7, fontFamily: "'Syne', sans-serif" }}>
                     To auto-push this analysis to GoHighLevel, run the N8N workflow with contact_id and the MP3 URL. The workflow will add the full scorecard as a contact note and tag hot leads automatically.
                   </div>
                 </div>
@@ -520,20 +520,20 @@ export default function CallAnalyzerFull() {
             {activeTab === "transcript" && (
               <div className="fadein">
                 <div className="field-label">Diarized Transcript</div>
-                <div style={{ background: "#0a0c10", border: "1px solid #111318", padding: "14px 16px", maxHeight: 420, overflowY: "auto" }}>
+                <div style={{ background: "#fff", border: "1px solid #e2e8f0", padding: "18px 20px", maxHeight: 500, overflowY: "auto", borderRadius: 8 }}>
                   {transcript ? transcript.split("\n\n").map((line, i) => {
                     const isAgent = line.startsWith("Agent:");
                     return (
-                      <div key={i} style={{ marginBottom: 12 }}>
-                        <span style={{ fontSize: 9, letterSpacing: ".12em", color: isAgent ? "#fbbf24" : "#60a5fa" }}>
+                      <div key={i} style={{ marginBottom: 14 }}>
+                        <span style={{ fontSize: 11, letterSpacing: ".1em", color: isAgent ? "#b45309" : "#2563eb", fontWeight: 600 }}>
                           {isAgent ? "AGENT" : "PROSPECT"}
                         </span>
-                        <p style={{ fontSize: 12, color: "#6b7280", lineHeight: 1.5, marginTop: 3, fontFamily: "'Syne', sans-serif" }}>
+                        <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6, marginTop: 4, fontFamily: "'Syne', sans-serif" }}>
                           {line.replace(/^(Agent:|Prospect:)\s*/, "")}
                         </p>
                       </div>
                     );
-                  }) : <p style={{ fontSize: 11, color: "#1e2330" }}>Transcript not available</p>}
+                  }) : <p style={{ fontSize: 14, color: "#94a3b8" }}>Transcript not available</p>}
                 </div>
               </div>
             )}
