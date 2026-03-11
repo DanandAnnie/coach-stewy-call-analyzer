@@ -99,9 +99,9 @@ export default function CallAnalyzerFull() {
       // STEP 1: Upload to AssemblyAI
       setStep("upload");
       setProgress("Uploading audio to AssemblyAI...");
-      const uploadRes = await fetch("https://api.assemblyai.com/v2/upload", {
+      const uploadRes = await fetch("/.netlify/functions/upload", {
         method: "POST",
-        headers: { authorization: assemblyKey, "content-type": "application/octet-stream" },
+        headers: { "x-api-key": assemblyKey },
         body: file,
       });
       if (!uploadRes.ok) throw new Error(`Upload failed: ${uploadRes.status} — check your AssemblyAI API key`);
@@ -110,9 +110,9 @@ export default function CallAnalyzerFull() {
       // STEP 2: Submit transcription
       setStep("transcribe");
       setProgress("Submitting for transcription + speaker diarization...");
-      const transcriptRes = await fetch("https://api.assemblyai.com/v2/transcript", {
+      const transcriptRes = await fetch("/.netlify/functions/transcribe", {
         method: "POST",
-        headers: { authorization: assemblyKey, "content-type": "application/json" },
+        headers: { "x-api-key": assemblyKey, "content-type": "application/json" },
         body: JSON.stringify({ audio_url: upload_url, speaker_labels: true, punctuate: true, format_text: true, speech_models: ["universal-2"] }),
       });
       if (!transcriptRes.ok) throw new Error(`Transcription submit failed: ${transcriptRes.status}`);
@@ -121,8 +121,8 @@ export default function CallAnalyzerFull() {
       // STEP 3: Poll for completion
       setProgress("Transcribing audio... (this takes 30–90 seconds)");
       const pollTranscript = async () => {
-        const pollRes = await fetch(`https://api.assemblyai.com/v2/transcript/${transcriptId}`, {
-          headers: { authorization: assemblyKey },
+        const pollRes = await fetch(`/.netlify/functions/poll?id=${transcriptId}`, {
+          headers: { "x-api-key": assemblyKey },
         });
         const data = await pollRes.json();
 
@@ -149,9 +149,9 @@ export default function CallAnalyzerFull() {
       // STEP 4: Claude analysis
       setStep("analyze");
       setProgress("Running AI coaching analysis...");
-      const claudeRes = await fetch("https://api.anthropic.com/v1/messages", {
+      const claudeRes = await fetch("/.netlify/functions/analyze", {
         method: "POST",
-        headers: { "content-type": "application/json", "anthropic-version": "2023-06-01" },
+        headers: { "content-type": "application/json" },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
           max_tokens: 1500,
