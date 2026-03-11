@@ -113,7 +113,7 @@ export default function CallAnalyzerFull() {
       const transcriptRes = await fetch("https://api.assemblyai.com/v2/transcript", {
         method: "POST",
         headers: { authorization: assemblyKey, "content-type": "application/json" },
-        body: JSON.stringify({ audio_url: upload_url, speaker_labels: true, speakers_expected: 2, punctuate: true, format_text: true }),
+        body: JSON.stringify({ audio_url: upload_url, speaker_labels: true, punctuate: true, format_text: true }),
       });
       if (!transcriptRes.ok) throw new Error(`Transcription submit failed: ${transcriptRes.status}`);
       const { id: transcriptId } = await transcriptRes.json();
