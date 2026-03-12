@@ -42,6 +42,37 @@ Scoring rubric:
 
 Be brutally honest. This agent wants to improve, not feel validated.`;
 
+const MILESTONE_SYSTEM = `You are an elite real estate sales coach providing a milestone performance review for Daniel Stewart at The Finest Homes in St. George, Utah. You are reviewing a batch of his last 10 analyzed calls.
+
+You will receive aggregated data from those 10 calls including: average scores, all objections detected, all coaching notes, all missed opportunities, lead temperatures, and appointment set rates.
+
+Return ONLY a valid JSON object — no markdown, no preamble:
+{
+  "headline": "<one bold sentence summarizing his last 10 calls>",
+  "score_trend": "<improving | steady | declining — based on the score data>",
+  "avg_overall": <number>,
+  "strongest_skill": "<which of the 5 scoring categories he's best at>",
+  "weakest_skill": "<which of the 5 scoring categories needs the most work>",
+  "recurring_objections": [
+    {"objection": "<the objection>", "frequency": <how many of 10 calls>, "script": "<exact word-for-word script to handle this objection next time>"}
+  ],
+  "missing_questions": [
+    "<specific discovery question he should be asking but isn't — with exact phrasing>",
+    "<specific discovery question he should be asking but isn't — with exact phrasing>",
+    "<specific discovery question he should be asking but isn't — with exact phrasing>"
+  ],
+  "talk_ratio_assessment": "<analysis of his talk ratio pattern across 10 calls>",
+  "pattern_alert": "<the single most important pattern you see across these calls that he needs to fix>",
+  "drill_scripts": [
+    {"scenario": "<specific scenario he keeps encountering>", "opening": "<exact opening line to use>", "key_phrases": ["<phrase 1>", "<phrase 2>", "<phrase 3>"], "close": "<exact closing/next-step line>"},
+    {"scenario": "<specific scenario he keeps encountering>", "opening": "<exact opening line to use>", "key_phrases": ["<phrase 1>", "<phrase 2>", "<phrase 3>"], "close": "<exact closing/next-step line>"}
+  ],
+  "appointment_rate": "<X out of 10 calls resulted in appointments>",
+  "next_10_focus": "<the ONE thing to focus on for the next 10 calls>"
+}
+
+Be specific. Use exact scripts and phrasing. Reference the Mashore Method where applicable. This agent is hungry to level up.`;
+
 const SCORE_META = {
   rapport: { label: "Rapport", icon: "◎" },
   discovery: { label: "Discovery", icon: "◉" },
@@ -78,14 +109,72 @@ export default function CallAnalyzerFull() {
   const [history, setHistory] = useState(() => {
     try { return JSON.parse(localStorage.getItem("call_history") || "[]"); } catch { return []; }
   });
+  const [milestoneReport, setMilestoneReport] = useState(null);
+  const [milestoneLoading, setMilestoneLoading] = useState(false);
+  const [showMilestone, setShowMilestone] = useState(false);
   const fileRef = useRef();
   const pollRef = useRef(null);
+
+  const generateMilestoneReport = async (calls) => {
+    setMilestoneLoading(true);
+    try {
+      const last10 = calls.slice(0, 10);
+      const allScores = last10.map(c => c.result?.scores).filter(Boolean);
+      const avgScores = {};
+      ["rapport", "discovery", "objection_handling", "talk_ratio", "next_step", "overall"].forEach(k => {
+        const vals = allScores.map(s => s[k]).filter(v => typeof v === "number");
+        avgScores[k] = vals.length ? Math.round(vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+      });
+      const allObjections = last10.flatMap(c => c.result?.objections_detected || []);
+      const allCoachingNotes = last10.flatMap(c => (c.result?.coaching_notes || []).map(n => n.issue));
+      const allMissedOpps = last10.map(c => c.result?.missed_opportunity).filter(Boolean);
+      const temps = last10.map(c => c.result?.lead_temperature).filter(Boolean);
+      const appts = last10.filter(c => c.result?.appointment_set).length;
+      const callTypes = last10.map(c => c.callType).filter(Boolean);
+
+      const summary = {
+        avg_scores: avgScores,
+        all_objections: allObjections,
+        all_coaching_issues: allCoachingNotes,
+        all_missed_opportunities: allMissedOpps,
+        lead_temps: temps,
+        appointments_set: appts,
+        call_types: callTypes,
+        individual_overalls: allScores.map(s => s.overall),
+      };
+
+      const res = await fetch("/.netlify/functions/analyze", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 2000,
+          system: MILESTONE_SYSTEM,
+          messages: [{ role: "user", content: `Here is the aggregated data from my last 10 calls:\n\n${JSON.stringify(summary, null, 2)}` }]
+        }),
+      });
+      if (!res.ok) throw new Error("Milestone report failed");
+      const data = await res.json();
+      const rawText = data.content?.find(b => b.type === "text")?.text || "";
+      const cleaned = rawText.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+      setMilestoneReport(parsed);
+      setShowMilestone(true);
+    } catch (err) {
+      console.error("Milestone report error:", err);
+    } finally {
+      setMilestoneLoading(false);
+    }
+  };
 
   const saveToHistory = (res, trans, name, type, fileName) => {
     const entry = { id: Date.now(), date: new Date().toISOString(), contactName: name, callType: type, fileName, result: res, transcript: trans };
     const updated = [entry, ...history];
     setHistory(updated);
     localStorage.setItem("call_history", JSON.stringify(updated));
+    if (updated.length > 0 && updated.length % 10 === 0) {
+      generateMilestoneReport(updated);
+    }
   };
 
   const deleteFromHistory = (id) => {
@@ -250,7 +339,13 @@ export default function CallAnalyzerFull() {
         <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: ".04em", color: "#b45309" }}>CALL INTEL</span>
         <span style={{ fontSize: 12, color: "#94a3b8", letterSpacing: ".08em", marginLeft: 4 }}>THE FINEST HOMES · ST. GEORGE UT</span>
         <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-          <button onClick={() => { setShowHistory(v => !v); if (step === "done") reset(); }} style={{ background: "none", border: "1px solid #e2e8f0", cursor: "pointer", color: showHistory ? "#b45309" : "#64748b", fontSize: 12, letterSpacing: ".08em", fontFamily: "'DM Mono', monospace", padding: "6px 14px", borderRadius: 4 }}>
+          {history.length >= 10 && (
+            <button onClick={() => { generateMilestoneReport(history); }} disabled={milestoneLoading}
+              style={{ background: milestoneLoading ? "none" : "rgba(180,83,9,.08)", border: "1px solid #b45309", cursor: milestoneLoading ? "wait" : "pointer", color: "#b45309", fontSize: 12, letterSpacing: ".08em", fontFamily: "'DM Mono', monospace", padding: "6px 14px", borderRadius: 4, fontWeight: 600 }}>
+              {milestoneLoading ? "GENERATING..." : "10-CALL REPORT"}
+            </button>
+          )}
+          <button onClick={() => { setShowHistory(v => !v); setShowMilestone(false); if (step === "done") reset(); }} style={{ background: "none", border: "1px solid #e2e8f0", cursor: "pointer", color: showHistory ? "#b45309" : "#64748b", fontSize: 12, letterSpacing: ".08em", fontFamily: "'DM Mono', monospace", padding: "6px 14px", borderRadius: 4 }}>
             HISTORY{history.length > 0 ? ` (${history.length})` : ""}
           </button>
           {step === "done" && (
@@ -260,6 +355,124 @@ export default function CallAnalyzerFull() {
           )}
         </div>
       </div>
+
+      {/* Milestone Report Modal */}
+      {showMilestone && milestoneReport && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,.5)", zIndex: 1000, display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+          onClick={() => setShowMilestone(false)}>
+          <div style={{ background: "#f8f9fb", borderRadius: 12, maxWidth: 720, width: "100%", maxHeight: "90vh", overflowY: "auto", padding: "32px 28px" }}
+            onClick={e => e.stopPropagation()} className="fadein">
+
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
+              <div>
+                <div style={{ fontSize: 11, letterSpacing: ".12em", color: "#b45309", fontWeight: 600, marginBottom: 4 }}>10-CALL MILESTONE REPORT</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 700, color: "#1e293b", lineHeight: 1.3 }}>{milestoneReport.headline}</div>
+              </div>
+              <button onClick={() => setShowMilestone(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 20, color: "#94a3b8", padding: 4 }}>✕</button>
+            </div>
+
+            {/* Top stats row */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 24 }}>
+              <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "14px 16px", textAlign: "center" }}>
+                <div style={{ fontSize: 11, color: "#94a3b8", letterSpacing: ".1em", marginBottom: 6, fontWeight: 500 }}>AVG SCORE</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 28, fontWeight: 800, color: scoreColor(milestoneReport.avg_overall || 0) }}>{milestoneReport.avg_overall}</div>
+              </div>
+              <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "14px 16px", textAlign: "center" }}>
+                <div style={{ fontSize: 11, color: "#94a3b8", letterSpacing: ".1em", marginBottom: 6, fontWeight: 500 }}>TREND</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 16, fontWeight: 700, color: milestoneReport.score_trend === "improving" ? "#16a34a" : milestoneReport.score_trend === "declining" ? "#dc2626" : "#ca8a04" }}>
+                  {milestoneReport.score_trend === "improving" ? "IMPROVING" : milestoneReport.score_trend === "declining" ? "DECLINING" : "STEADY"}
+                </div>
+              </div>
+              <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "14px 16px", textAlign: "center" }}>
+                <div style={{ fontSize: 11, color: "#94a3b8", letterSpacing: ".1em", marginBottom: 6, fontWeight: 500 }}>APPTS SET</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 700, color: "#1e293b" }}>{milestoneReport.appointment_rate}</div>
+              </div>
+              <div style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "14px 16px", textAlign: "center" }}>
+                <div style={{ fontSize: 11, color: "#94a3b8", letterSpacing: ".1em", marginBottom: 6, fontWeight: 500 }}>WEAKEST</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontSize: 14, fontWeight: 700, color: "#dc2626" }}>{milestoneReport.weakest_skill?.replace("_", " ").toUpperCase()}</div>
+              </div>
+            </div>
+
+            {/* Pattern Alert */}
+            <div style={{ background: "rgba(180,83,9,.06)", border: "1px solid rgba(180,83,9,.25)", borderLeft: "4px solid #b45309", padding: "16px 18px", marginBottom: 20, borderRadius: 6 }}>
+              <div style={{ fontSize: 11, color: "#b45309", letterSpacing: ".1em", marginBottom: 6, fontWeight: 600 }}>PATTERN ALERT</div>
+              <p style={{ fontSize: 15, color: "#334155", lineHeight: 1.7, fontFamily: "'Syne', sans-serif" }}>{milestoneReport.pattern_alert}</p>
+            </div>
+
+            {/* Talk ratio assessment */}
+            <div style={{ background: "#fff", border: "1px solid #e2e8f0", padding: "14px 18px", marginBottom: 20, borderRadius: 6 }}>
+              <div style={{ fontSize: 11, color: "#94a3b8", letterSpacing: ".1em", marginBottom: 6, fontWeight: 500 }}>TALK RATIO PATTERN</div>
+              <p style={{ fontSize: 14, color: "#475569", lineHeight: 1.6, fontFamily: "'Syne', sans-serif" }}>{milestoneReport.talk_ratio_assessment}</p>
+            </div>
+
+            {/* Recurring Objections + Scripts */}
+            {milestoneReport.recurring_objections?.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 12, letterSpacing: ".12em", color: "#64748b", marginBottom: 12, fontWeight: 500 }}>RECURRING OBJECTIONS + SCRIPTS</div>
+                {milestoneReport.recurring_objections.map((obj, i) => (
+                  <div key={i} style={{ background: "#fff", border: "1px solid #e2e8f0", borderLeft: "3px solid #dc2626", padding: "14px 18px", marginBottom: 10, borderRadius: 6 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+                      <span style={{ fontSize: 14, color: "#dc2626", fontWeight: 600 }}>{obj.objection}</span>
+                      <span style={{ fontSize: 11, color: "#94a3b8", background: "#f1f5f9", padding: "2px 8px", borderRadius: 4 }}>{obj.frequency}/10 calls</span>
+                    </div>
+                    <div style={{ background: "#f8f9fb", border: "1px solid #e2e8f0", borderRadius: 6, padding: "12px 14px" }}>
+                      <div style={{ fontSize: 11, color: "#b45309", letterSpacing: ".08em", marginBottom: 6, fontWeight: 600 }}>YOUR SCRIPT:</div>
+                      <p style={{ fontSize: 14, color: "#334155", lineHeight: 1.7, fontFamily: "'Syne', sans-serif", fontStyle: "italic" }}>"{obj.script}"</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Missing Questions */}
+            {milestoneReport.missing_questions?.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 12, letterSpacing: ".12em", color: "#64748b", marginBottom: 12, fontWeight: 500 }}>QUESTIONS YOU SHOULD BE ASKING</div>
+                {milestoneReport.missing_questions.map((q, i) => (
+                  <div key={i} style={{ background: "#fff", border: "1px solid #e2e8f0", borderLeft: "3px solid #2563eb", padding: "12px 16px", marginBottom: 8, borderRadius: 6 }}>
+                    <p style={{ fontSize: 14, color: "#334155", lineHeight: 1.6, fontFamily: "'Syne', sans-serif", fontStyle: "italic" }}>"{q}"</p>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Drill Scripts */}
+            {milestoneReport.drill_scripts?.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 12, letterSpacing: ".12em", color: "#64748b", marginBottom: 12, fontWeight: 500 }}>DRILL SCRIPTS — PRACTICE THESE</div>
+                {milestoneReport.drill_scripts.map((drill, i) => (
+                  <div key={i} style={{ background: "#fff", border: "1px solid #e2e8f0", padding: "18px 20px", marginBottom: 12, borderRadius: 8 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, color: "#b45309", marginBottom: 12, fontFamily: "'Syne', sans-serif" }}>{drill.scenario}</div>
+                    <div style={{ marginBottom: 10 }}>
+                      <span style={{ fontSize: 11, color: "#16a34a", letterSpacing: ".08em", fontWeight: 600 }}>OPENING: </span>
+                      <span style={{ fontSize: 14, color: "#334155", fontFamily: "'Syne', sans-serif", fontStyle: "italic" }}>"{drill.opening}"</span>
+                    </div>
+                    <div style={{ marginBottom: 10 }}>
+                      <span style={{ fontSize: 11, color: "#94a3b8", letterSpacing: ".08em", fontWeight: 500 }}>KEY PHRASES: </span>
+                      <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginTop: 4 }}>
+                        {drill.key_phrases?.map((p, j) => (
+                          <span key={j} style={{ fontSize: 13, background: "rgba(180,83,9,.06)", border: "1px solid rgba(180,83,9,.2)", color: "#92400e", padding: "4px 10px", borderRadius: 4 }}>"{p}"</span>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <span style={{ fontSize: 11, color: "#2563eb", letterSpacing: ".08em", fontWeight: 600 }}>CLOSE: </span>
+                      <span style={{ fontSize: 14, color: "#334155", fontFamily: "'Syne', sans-serif", fontStyle: "italic" }}>"{drill.close}"</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Next 10 Focus */}
+            <div style={{ background: "rgba(22,163,74,.06)", border: "1px solid rgba(22,163,74,.25)", borderLeft: "4px solid #16a34a", padding: "16px 18px", borderRadius: 6 }}>
+              <div style={{ fontSize: 11, color: "#16a34a", letterSpacing: ".1em", marginBottom: 6, fontWeight: 600 }}>FOCUS FOR YOUR NEXT 10 CALLS</div>
+              <p style={{ fontSize: 16, color: "#334155", lineHeight: 1.7, fontFamily: "'Syne', sans-serif", fontWeight: 600 }}>{milestoneReport.next_10_focus}</p>
+            </div>
+
+          </div>
+        </div>
+      )}
 
       {/* History View */}
       {showHistory && (
