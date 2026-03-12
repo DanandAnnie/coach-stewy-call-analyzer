@@ -143,7 +143,7 @@ export default function CallAnalyzerFull() {
         individual_overalls: allScores.map(s => s.overall),
       };
 
-      const res = await fetch("/.netlify/functions/analyze", {
+      const res = await fetch("/api/analyze", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
@@ -215,7 +215,7 @@ export default function CallAnalyzerFull() {
       // STEP 1: Upload to AssemblyAI
       setStep("upload");
       setProgress("Uploading audio to AssemblyAI...");
-      const uploadRes = await fetch("/.netlify/functions/upload", {
+      const uploadRes = await fetch("/api/upload", {
         method: "POST",
         headers: { "x-api-key": assemblyKey },
         body: file,
@@ -226,7 +226,7 @@ export default function CallAnalyzerFull() {
       // STEP 2: Submit transcription
       setStep("transcribe");
       setProgress("Submitting for transcription + speaker diarization...");
-      const transcriptRes = await fetch("/.netlify/functions/transcribe", {
+      const transcriptRes = await fetch("/api/transcribe", {
         method: "POST",
         headers: { "x-api-key": assemblyKey, "content-type": "application/json" },
         body: JSON.stringify({ audio_url: upload_url, speaker_labels: true, punctuate: true, format_text: true, speech_models: ["universal-2"] }),
@@ -237,7 +237,7 @@ export default function CallAnalyzerFull() {
       // STEP 3: Poll for completion
       setProgress("Transcribing audio... (this takes 30–90 seconds)");
       const pollTranscript = async () => {
-        const pollRes = await fetch(`/.netlify/functions/poll?id=${transcriptId}`, {
+        const pollRes = await fetch(`/api/poll?id=${transcriptId}`, {
           headers: { "x-api-key": assemblyKey },
         });
         const data = await pollRes.json();
@@ -265,7 +265,7 @@ export default function CallAnalyzerFull() {
       // STEP 4: Claude analysis
       setStep("analyze");
       setProgress("Running AI coaching analysis...");
-      const claudeRes = await fetch("/.netlify/functions/analyze", {
+      const claudeRes = await fetch("/api/analyze", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
