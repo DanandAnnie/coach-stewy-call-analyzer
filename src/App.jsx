@@ -74,8 +74,35 @@ export default function CallAnalyzerFull() {
   const [activeTab, setActiveTab] = useState("scores");
   const [error, setError] = useState(null);
   const [dragging, setDragging] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("call_history") || "[]"); } catch { return []; }
+  });
   const fileRef = useRef();
   const pollRef = useRef(null);
+
+  const saveToHistory = (res, trans, name, type, fileName) => {
+    const entry = { id: Date.now(), date: new Date().toISOString(), contactName: name, callType: type, fileName, result: res, transcript: trans };
+    const updated = [entry, ...history];
+    setHistory(updated);
+    localStorage.setItem("call_history", JSON.stringify(updated));
+  };
+
+  const deleteFromHistory = (id) => {
+    const updated = history.filter(h => h.id !== id);
+    setHistory(updated);
+    localStorage.setItem("call_history", JSON.stringify(updated));
+  };
+
+  const loadFromHistory = (entry) => {
+    setResult(entry.result);
+    setTranscript(entry.transcript);
+    setContactName(entry.contactName);
+    setCallType(entry.callType);
+    setStep("done");
+    setActiveTab("scores");
+    setShowHistory(false);
+  };
 
   const handleDrop = useCallback((e) => {
     e.preventDefault();
@@ -168,6 +195,7 @@ export default function CallAnalyzerFull() {
       const cleaned = rawText.replace(/```json|```/g, "").trim();
       const parsed = JSON.parse(cleaned);
       setResult(parsed);
+      saveToHistory(parsed, finalTranscript, contactName, callType, file.name);
       setStep("done");
       setActiveTab("scores");
 
@@ -221,14 +249,80 @@ export default function CallAnalyzerFull() {
         <div style={{ width: 8, height: 8, background: "#b45309", borderRadius: "50%" }} />
         <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 18, fontWeight: 700, letterSpacing: ".04em", color: "#b45309" }}>CALL INTEL</span>
         <span style={{ fontSize: 12, color: "#94a3b8", letterSpacing: ".08em", marginLeft: 4 }}>THE FINEST HOMES · ST. GEORGE UT</span>
-        {step === "done" && (
-          <button onClick={reset} style={{ marginLeft: "auto", background: "none", border: "1px solid #e2e8f0", cursor: "pointer", color: "#64748b", fontSize: 12, letterSpacing: ".08em", fontFamily: "'DM Mono', monospace", padding: "6px 14px", borderRadius: 4 }}>
-            NEW CALL
+        <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
+          <button onClick={() => { setShowHistory(v => !v); if (step === "done") reset(); }} style={{ background: "none", border: "1px solid #e2e8f0", cursor: "pointer", color: showHistory ? "#b45309" : "#64748b", fontSize: 12, letterSpacing: ".08em", fontFamily: "'DM Mono', monospace", padding: "6px 14px", borderRadius: 4 }}>
+            HISTORY{history.length > 0 ? ` (${history.length})` : ""}
           </button>
-        )}
+          {step === "done" && (
+            <button onClick={reset} style={{ background: "none", border: "1px solid #e2e8f0", cursor: "pointer", color: "#64748b", fontSize: 12, letterSpacing: ".08em", fontFamily: "'DM Mono', monospace", padding: "6px 14px", borderRadius: 4 }}>
+              NEW CALL
+            </button>
+          )}
+        </div>
       </div>
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", display: "grid", gridTemplateColumns: step === "done" ? "380px 1fr" : "1fr", gap: 28 }}>
+      {/* History View */}
+      {showHistory && (
+        <div style={{ maxWidth: 900, margin: "0 auto", padding: "32px 24px" }} className="fadein">
+          <div style={{ fontSize: 12, letterSpacing: ".12em", color: "#94a3b8", marginBottom: 16, fontWeight: 500 }}>CALL HISTORY · {history.length} RECORD{history.length !== 1 ? "S" : ""}</div>
+          {history.length === 0 ? (
+            <div style={{ background: "#fff", border: "1px solid #e2e8f0", padding: "40px 20px", textAlign: "center", borderRadius: 8 }}>
+              <div style={{ fontSize: 15, color: "#94a3b8" }}>No calls analyzed yet. Run your first analysis to start building history.</div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {history.map(entry => {
+                const score = entry.result?.scores?.overall;
+                const temp = entry.result?.lead_temperature;
+                const d = new Date(entry.date);
+                const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+                const timeStr = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+                return (
+                  <div key={entry.id} style={{ background: "#fff", border: "1px solid #e2e8f0", borderRadius: 8, padding: "16px 20px", display: "flex", alignItems: "center", gap: 16, cursor: "pointer", transition: "border-color .2s" }}
+                    onClick={() => loadFromHistory(entry)}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = "#b45309"}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = "#e2e8f0"}>
+                    {/* Score */}
+                    <div style={{ width: 52, height: 52, borderRadius: "50%", border: `3px solid ${scoreColor(score || 0)}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <span style={{ fontFamily: "'Syne', sans-serif", fontSize: 20, fontWeight: 700, color: scoreColor(score || 0) }}>{score || "—"}</span>
+                    </div>
+                    {/* Info */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: "#1e293b", marginBottom: 4, fontFamily: "'Syne', sans-serif" }}>
+                        {entry.contactName || "Unknown Contact"}
+                      </div>
+                      <div style={{ fontSize: 13, color: "#64748b", display: "flex", gap: 12, flexWrap: "wrap" }}>
+                        <span>{dateStr} · {timeStr}</span>
+                        <span style={{ textTransform: "capitalize" }}>{entry.callType?.replace("_", " ")}</span>
+                        <span style={{ color: "#94a3b8" }}>{entry.fileName}</span>
+                      </div>
+                    </div>
+                    {/* Lead temp badge */}
+                    {temp && (
+                      <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: ".1em", color: tempMeta[temp]?.color || "#6b7280", background: `${tempMeta[temp]?.color || "#6b7280"}12`, padding: "4px 10px", borderRadius: 4 }}>
+                        {temp.toUpperCase()}
+                      </span>
+                    )}
+                    {/* Delete */}
+                    <button onClick={e => { e.stopPropagation(); deleteFromHistory(entry.id); }}
+                      style={{ background: "none", border: "none", cursor: "pointer", color: "#cbd5e1", fontSize: 16, padding: "4px 8px", transition: "color .2s" }}
+                      onMouseEnter={e => e.target.style.color = "#dc2626"}
+                      onMouseLeave={e => e.target.style.color = "#cbd5e1"}
+                      title="Delete">
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          <button onClick={() => setShowHistory(false)} style={{ marginTop: 20, background: "none", border: "1px solid #e2e8f0", color: "#64748b", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: 13, letterSpacing: ".08em", padding: "10px 20px", borderRadius: 6 }}>
+            BACK
+          </button>
+        </div>
+      )}
+
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px", display: "grid", gridTemplateColumns: step === "done" ? "380px 1fr" : "1fr", gap: 28, ...(showHistory ? { display: "none" } : {}) }}>
 
         {/* LEFT / INPUT PANEL */}
         {step !== "done" && (
