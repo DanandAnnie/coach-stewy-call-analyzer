@@ -1,3 +1,4 @@
 node_modules/
 dist/
 n8n-workflows/call-analyzer-gdrive-auto.json
+.vercel
