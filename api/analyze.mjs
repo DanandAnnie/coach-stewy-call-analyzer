@@ -41,6 +41,11 @@ export default async function handler(req, res) {
   }
 
   // Translate the OpenAI-style response back so the frontend's content[].text parsing works unchanged.
-  const text = data.choices?.[0]?.message?.content || "";
+  let text = data.choices?.[0]?.message?.content || "";
+  // Some reasoning models wrap their thinking in <think>...</think>; strip it before the frontend parses JSON.
+  text = text.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+  if (!text) {
+    return res.status(502).json({ error: "Model returned an empty response. Try again or change OPENROUTER_MODEL." });
+  }
   res.status(200).json({ content: [{ type: "text", text }] });
 }
