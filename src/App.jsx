@@ -207,7 +207,7 @@ export default function CallAnalyzerFull() {
   };
 
   const runPipeline = async () => {
-    if (!file || !assemblyKey) return;
+    if (!file) return;
     setError(null);
     setResult(null);
 
@@ -542,12 +542,12 @@ export default function CallAnalyzerFull() {
           <div style={{ maxWidth: 560, margin: "0 auto", width: "100%" }}>
             {/* API Key */}
             <div style={{ marginBottom: 20 }}>
-              <span className="field-label">AssemblyAI API Key</span>
+              <span className="field-label">AssemblyAI API Key <span style={{ fontWeight: 400, color: "#94a3b8" }}>(optional)</span></span>
               <div className="key-input-wrap">
                 <input
                   className="text-input"
                   type={showKey ? "text" : "password"}
-                  placeholder="Enter your AssemblyAI key..."
+                  placeholder="Using server key — leave blank"
                   value={assemblyKey}
                   onChange={e => { setAssemblyKey(e.target.value); localStorage.setItem("assemblyai_key", e.target.value); }}
                   style={{ width: "100%" }}
@@ -557,7 +557,7 @@ export default function CallAnalyzerFull() {
                 </button>
               </div>
               <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 6 }}>
-                assemblyai.com → Account → API Keys · Free tier: 100 hrs/mo
+                Key is configured on the server — leave blank. Enter one only to override.
               </div>
             </div>
 
@@ -611,7 +611,7 @@ export default function CallAnalyzerFull() {
               ))}
             </div>
 
-            <button className="run-btn" onClick={runPipeline} disabled={!file || !assemblyKey || isRunning} style={{ width: "100%" }}>
+            <button className="run-btn" onClick={runPipeline} disabled={!file || isRunning} style={{ width: "100%" }}>
               {isRunning ? "Processing..." : "Run Full Analysis"}
             </button>
 

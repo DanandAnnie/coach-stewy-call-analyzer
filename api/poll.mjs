@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   const { id } = req.query;
-  const apiKey = req.headers["x-api-key"];
+  const apiKey = req.headers["x-api-key"] || process.env.ASSEMBLYAI_API_KEY;
 
   if (!id || !apiKey) {
     return res.status(400).json({ error: "Missing id or API key" });
