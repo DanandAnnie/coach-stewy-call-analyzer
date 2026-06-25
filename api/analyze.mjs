@@ -25,8 +25,11 @@ export default async function handler(req, res) {
     contents,
     // Force valid JSON output so the frontend's JSON.parse never chokes.
     generationConfig: {
-      maxOutputTokens: max_tokens || 2000,
+      maxOutputTokens: Math.max(max_tokens || 2000, 2048),
       responseMimeType: "application/json",
+      // 2.5-flash "thinks" by default and burns the output budget before writing JSON,
+      // which truncates the result. Disable thinking so all tokens go to the answer.
+      thinkingConfig: { thinkingBudget: 0 },
     },
   };
   if (system) body.system_instruction = { parts: [{ text: system }] };
